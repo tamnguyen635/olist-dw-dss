@@ -38,6 +38,12 @@ def extract(raw: Path) -> dict:
         "sellers": "olist_sellers_dataset",
         "translation": "product_category_name_translation",
     }
+    missing = [f"{v}.csv" for v in names.values() if not (raw / f"{v}.csv").exists()]
+    if missing:
+        raise SystemExit(
+            f"Missing CSV file(s) in {raw}:\n  " + "\n  ".join(missing) +
+            "\nDownload the Olist dataset from Kaggle and put the CSVs in data/raw/ "
+            "(olist_geolocation_dataset.csv is NOT needed).")
     data = {k: pd.read_csv(raw / f"{v}.csv", dtype=str) for k, v in names.items()}
     for k, df in data.items():
         print(f"[extract] {k:<12} {len(df):>9,} rows")

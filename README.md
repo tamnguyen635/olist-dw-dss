@@ -40,26 +40,50 @@ olist-dw-dss/
 └── slides/         # Slide thuyết trình PDF
 ```
 
-## Cách chạy (sẽ cập nhật khi code hoàn thiện)
+## Cách chạy
 
 ```bash
-# 1. Môi trường
-python -m venv .venv && source .venv/bin/activate
+# 1. Lấy code
+git clone https://github.com/tamnguyen635/olist-dw-dss.git
+cd olist-dw-dss
+
+# 2. Môi trường (Python 3.10+)
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-# 2. Đặt các file CSV Olist vào data/raw/
+# 3. Đặt 8 file CSV vào data/raw/ (xem mục "Dữ liệu" bên dưới)
 
-# 3. Chạy ETL -> tạo data/processed/olist_dw.db
+# 4. Chạy ETL -> tạo data/processed/olist_dw.db (~5 giây)
 python src/etl/run_etl.py
 
-# 4. Chạy dashboard
+# 5. (Tuỳ chọn) Xem kết quả các phép OLAP
+python src/olap/olap_demo.py
+
+# 6. Chạy dashboard (sẽ có khi phần Streamlit hoàn thiện)
 streamlit run src/app/app.py
 ```
 
+ETL tự chạy các kiểm tra chất lượng dữ liệu ở cuối. Nếu thấy dòng `FAIL` thì dừng lại và báo cho người phụ trách ETL.
+
 ## Dữ liệu
 
-Tải bộ **Brazilian E-Commerce Public Dataset by Olist** từ Kaggle và giải nén các file CSV vào `data/raw/`.
-Dữ liệu và file `.db` không được commit vì dung lượng lớn.
+Tải **Brazilian E-Commerce Public Dataset by Olist** từ Kaggle (tìm theo tên trên kaggle.com) và đặt
+các file CSV sau vào `data/raw/`:
+
+```
+olist_customers_dataset.csv
+olist_orders_dataset.csv
+olist_order_items_dataset.csv
+olist_order_payments_dataset.csv
+olist_order_reviews_dataset.csv
+olist_products_dataset.csv
+olist_sellers_dataset.csv
+product_category_name_translation.csv
+```
+
+`olist_geolocation_dataset.csv` **không cần** cho dự án này. Dữ liệu thô và file `.db` không được commit
+vì dung lượng lớn (xem `.gitignore`).
 
 ## Tài liệu
 
