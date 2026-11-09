@@ -218,3 +218,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---- Project specific ----
+data/raw/*
+data/processed/*
+*.db
+*.sqlite
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+.venv/
+.streamlit/secrets.toml
+.DS_Store
