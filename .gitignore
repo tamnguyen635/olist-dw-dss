@@ -229,3 +229,9 @@ data/processed/*
 .venv/
 .streamlit/secrets.toml
 .DS_Store
+
+# LaTeX build artifacts
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
