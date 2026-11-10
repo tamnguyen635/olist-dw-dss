@@ -68,7 +68,7 @@ phân tích tổng hợp theo nhiều chiều (thời gian, vùng, danh mục\ld
 
 Nhóm chọn lĩnh vực \textbf{bán lẻ / thương mại điện tử}, dùng bộ dữ liệu công khai
 \emph{Brazilian E-Commerce Public Dataset by Olist} (Kaggle) \cite{olist}. Bộ dữ liệu gồm khoảng 100 nghìn đơn hàng thật
-đã được ẩn danh, từ 04/09/2016 đến 17/10/2018, đáp ứng yêu cầu về quy mô và ý nghĩa thực tế của đề bài.
+đã được ẩn danh, từ 04/09/2016 đến 17/10/2018 (các dòng hàng có giá trị chỉ kéo dài đến 03/09/2018), đáp ứng yêu cầu về quy mô và ý nghĩa thực tế của đề bài.
 
 \subsection{Đối tượng sử dụng và câu hỏi nghiệp vụ}
 Kho dữ liệu phục vụ ban quản lý của một sàn thương mại điện tử (quản lý kinh doanh, vận hành, chăm sóc
@@ -374,7 +374,7 @@ GROUP BY d.year ORDER BY d.year;
 \end{tabular}
 \end{table}
 
-Dữ liệu năm 2016 chỉ có vài tháng cuối, và năm 2018 dừng ở tháng 10, nên so sánh cả năm cần thận trọng.
+Năm 2016 chỉ có 3 tháng rời rạc (9, 10, 12) và năm 2018 chỉ có dữ liệu từ tháng 1 đến tháng 8 (tháng 9 chỉ có 1 đơn), nên không thể so sánh trực tiếp tổng cả năm; muốn so sánh công bằng cần đối chiếu cùng kỳ tháng 1--8.
 
 \subsection{Drill-down: từ năm 2017 xuống quý và tháng}
 Truy vấn nhóm theo \code{quarter} và \code{year\_month} của năm 2017. Doanh thu tăng gần như liên tục từ
@@ -455,7 +455,7 @@ Giao trễ & 8.714 & 31,3 & 2,55\\
         (incremental) và ghi lại lịch sử nạp trong metadata.
   \item \textbf{Chưa dùng dữ liệu địa lý chi tiết.} Có thể bổ sung tọa độ theo mã bưu chính (sau khi gộp để giảm
         dung lượng) để vẽ bản đồ trên dashboard.
-  \item \textbf{Phạm vi thời gian.} Dữ liệu không đầy đủ ở hai đầu (cuối 2016, giữa tháng 10/2018), nên cần thận trọng khi
+  \item \textbf{Phạm vi thời gian.} Dữ liệu không đầy đủ ở hai đầu (2016 chỉ có 3 tháng rời rạc, 2018 dừng ở tháng 8), nên cần thận trọng khi
         so sánh theo năm.
 \end{itemize}
 
