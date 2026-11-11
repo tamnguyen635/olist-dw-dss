@@ -1,0 +1,426 @@
+% ============================================================
+% Bao cao BTL CO4031 - Phan cua Nguoi B (Dashboard & DSS)
+% Bien dich:  xelatex part_B_dss.tex   (chay 2 lan de co muc luc)
+% ============================================================
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setmonofont{DejaVu Sans Mono}[Scale=0.82]
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{amsmath}
+\usepackage{booktabs,longtable,tabularx,array}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+% --- Tieu de tieng Viet ---
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\listfigurename}{Danh mục hình}
+\renewcommand{\listtablename}{Danh mục bảng}
+\renewcommand{\refname}{Tài liệu tham khảo}
+
+% --- Code listing ---
+\definecolor{codebg}{RGB}{245,245,245}
+\lstdefinestyle{sql}{
+  language=SQL, basicstyle=\ttfamily\footnotesize, backgroundcolor=\color{codebg},
+  keywordstyle=\color{blue!60!black}\bfseries, commentstyle=\color{green!40!black},
+  breaklines=true, frame=single, rulecolor=\color{black!20}, showstringspaces=false,
+  morekeywords={CASE,WHEN,THEN,ELSE,END,LIMIT,PRAGMA,AUTOINCREMENT,REFERENCES,IF,EXISTS}
+}
+\lstdefinestyle{py}{
+  language=Python, basicstyle=\ttfamily\footnotesize, backgroundcolor=\color{codebg},
+  keywordstyle=\color{blue!60!black}\bfseries, commentstyle=\color{green!40!black},
+  breaklines=true, frame=single, rulecolor=\color{black!20}, showstringspaces=false
+}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\captionsetup{font=small,labelfont=bf}
+
+\title{\textbf{BÁO CÁO BÀI TẬP LỚN CO4031}\\[4pt]
+\Large Kho dữ liệu thương mại điện tử Olist và hệ hỗ trợ ra quyết định\\[4pt]
+\large Phần B: Dashboard phân tích và Hệ hỗ trợ ra quyết định (DSS)}
+\author{Vỹ (Người B -- Ứng dụng \& DSS)}
+\date{Học kỳ 261 -- Năm học 2026--2027}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\clearpage
+
+% ============================================================
+\section{Kiến trúc dashboard và DSS}
+% ============================================================
+
+\subsection{Vị trí trong hệ thống}
+Phần B dùng lại kho dữ liệu (DW) do phần A xây dựng, không đọc lại các tệp CSV gốc. Theo hợp đồng dữ liệu
+giữa hai phần (\code{docs/data\_contract.md}), phần B \emph{chỉ đọc} từ tệp \code{data/processed/olist\_dw.db}
+đã được ETL của phần A nạp sẵn theo lược đồ star schema (\code{src/sql/01\_schema.sql}). Phần B không được
+tự sửa lược đồ hay đọc CSV trực tiếp, để tránh hai phần xung đột dữ liệu.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=9mm,
+  box/.style={draw, rounded corners, minimum height=1.1cm, minimum width=2.6cm, align=center, fill=blue!6},
+  arr/.style={-{Latex[length=2.5mm]}, thick}]
+  \node[box, fill=orange!15] (dw) {Kho dữ liệu\\SQLite (star schema)};
+  \node[box, below=14mm of dw] (qry) {\code{src/app/queries.py}\\SQL tham số hóa};
+  \node[box, below left=14mm and 4mm of qry, fill=green!10] (app) {\code{src/app/app.py}\\Streamlit (5 trang)};
+  \node[box, below right=14mm and 4mm of qry, fill=green!10] (dss) {\code{src/dss/}\\forecast, rfm, whatif};
+  \draw[arr] (dw) -- (qry);
+  \draw[arr] (qry) -- (app);
+  \draw[arr] (qry) -- (dss);
+  \draw[arr] (dss.north) to[out=100,in=-80] (app.south);
+\end{tikzpicture}
+\caption{Kiến trúc dashboard và DSS: giao diện và các mô hình DSS đều chỉ truy cập DW qua một tầng truy vấn SQL duy nhất}\label{fig:arch-b}
+\end{figure}
+
+\subsection{Các tầng}
+\begin{itemize}[nosep]
+  \item \textbf{Tầng truy vấn (\code{src/app/queries.py}).} Toàn bộ câu SQL đọc DW nằm trong một tệp duy nhất.
+        Mọi điều kiện lọc (năm, bang, danh mục\ldots) dùng tham số \code{?} của \code{sqlite3}, không nối chuỗi,
+        tránh SQL injection và giữ quy ước doanh thu \code{SUM(price)}, loại đơn \code{canceled}/\code{unavailable}
+        thống nhất ở một chỗ (hàm \code{\_not\_canceled\_clause}).
+  \item \textbf{Tầng giao diện (\code{src/app/app.py}).} Ứng dụng Streamlit, chỉ gọi hàm ở \code{queries.py}
+        và ba mô-đun DSS, không bao giờ mở kết nối CSDL trực tiếp. Mỗi hàm truy vấn được bọc bằng
+        \code{@st.cache\_data} để không truy vấn lại DW mỗi lần người dùng tương tác với widget.
+  \item \textbf{Tầng DSS (\code{src/dss/forecast.py}, \code{rfm.py}, \code{whatif.py}).} Ba mô-đun độc lập, có thể
+        chạy trực tiếp bằng dòng lệnh (\code{python src/dss/forecast.py}) để kiểm tra kết quả ngoài giao diện,
+        đồng thời được \code{app.py} import và gọi lại trong trang \emph{Dự báo \& DSS}.
+\end{itemize}
+
+% ============================================================
+\section{Dashboard Streamlit}
+% ============================================================
+
+Dashboard gồm 5 trang, chọn qua \code{st.sidebar.radio} (hàm \code{main()} trong \code{app.py}, biến \code{PAGES}).
+
+\subsection{Trang 1 -- Tổng quan (\code{page\_overview})}
+Hiển thị 5 chỉ số KPI (doanh thu, số đơn, giá trị đơn trung bình, điểm đánh giá trung bình, \% giao trễ) từ
+\code{kpi\_summary()}, và biểu đồ đường doanh thu theo tháng từ \code{monthly\_revenue()}.
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{3cm}\textit{TODO: chèn ảnh chụp màn hình trang Tổng quan}\vspace{3cm}}}
+\caption{Trang Tổng quan của dashboard}\label{fig:ss-overview}
+\end{figure}
+
+\subsection{Trang 2 -- Phân tích đa chiều (OLAP) (\code{page\_olap})}
+Đây là trang chứng minh năm phép toán OLAP theo yêu cầu đề bài, mỗi phép toán ứng với một hàm riêng trong
+\code{queries.py} (Bảng~\ref{tab:olap-map}).
+
+\begin{table}[h]
+\centering
+\caption{Ánh xạ phép toán OLAP sang hàm truy vấn và thành phần giao diện}\label{tab:olap-map}
+\small
+\begin{tabularx}{\textwidth}{@{}l l X@{}}
+\toprule
+\textbf{Phép toán} & \textbf{Hàm (\code{queries.py})} & \textbf{Thao tác trên giao diện}\\
+\midrule
+Roll-up & \code{rollup\_by\_year()} & Tổng hợp doanh thu từ mức tháng lên mức năm, hiển thị biểu đồ cột theo năm.\\
+Drill-down & \code{drilldown\_by\_month(year)} & Chọn một năm (\code{st.selectbox}), xem chi tiết doanh thu theo quý và tháng của năm đó.\\
+Slice & \code{slice\_by\_category(year)} & Cố định chiều thời gian ở một năm được chọn, xem doanh thu theo danh mục sản phẩm.\\
+Dice & \code{dice\_states\_categories(states, categories, year)} & Chọn nhiều bang và nhiều danh mục (\code{st.multiselect}) cùng lúc, có thể chọn thêm năm, trả về khối con.\\
+Pivot & \code{pivot\_category\_by\_year()} & Xoay chiều năm thành cột (\code{y2016}, \code{y2017}, \code{y2018}, \code{total}) bằng biểu thức \code{SUM(CASE WHEN\ldots)}, hiển thị dạng bảng.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{3cm}\textit{TODO: chèn ảnh chụp màn hình trang OLAP (roll-up/drill-down/slice/dice/pivot)}\vspace{3cm}}}
+\caption{Trang Phân tích đa chiều (OLAP)}\label{fig:ss-olap}
+\end{figure}
+
+\subsection{Trang 3 -- Địa lý \& khách hàng (\code{page\_geo\_customer})}
+Biểu đồ cột doanh thu theo bang, tô màu theo điểm đánh giá trung bình (\code{revenue\_review\_by\_state()}),
+và biểu đồ tròn cơ cấu doanh thu theo hình thức thanh toán (\code{payment\_mix()}).
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{3cm}\textit{TODO: chèn ảnh chụp màn hình trang Địa lý \& khách hàng}\vspace{3cm}}}
+\caption{Trang Địa lý \& khách hàng}\label{fig:ss-geo}
+\end{figure}
+
+\subsection{Trang 4 -- Giao hàng \& hài lòng (\code{page\_delivery})}
+So sánh điểm đánh giá trung bình và số ngày giao trung bình giữa nhóm giao trễ và đúng hạn
+(\code{delivery\_vs\_review()}), rồi tách theo 10 bang và 10 danh mục có số lượng dòng hàng lớn nhất
+(\code{delivery\_vs\_review\_by\_state()}, \code{delivery\_vs\_review\_by\_category()}).
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{3cm}\textit{TODO: chèn ảnh chụp màn hình trang Giao hàng \& hài lòng}\vspace{3cm}}}
+\caption{Trang Giao hàng \& hài lòng}\label{fig:ss-delivery}
+\end{figure}
+
+\subsection{Trang 5 -- Dự báo \& DSS (\code{page\_dss})}
+Gồm ba khối tương ứng ba mô hình DSS trình bày ở Mục~3: biểu đồ dự báo doanh thu kèm bảng MAE/MAPE, bảng
+phân khúc khách hàng RFM + K-Means kèm biểu đồ elbow, và hai khối what-if (giao trễ, khuyến mãi) với thanh
+trượt tương tác (\code{st.slider}).
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{3cm}\textit{TODO: chèn ảnh chụp màn hình trang Dự báo \& DSS}\vspace{3cm}}}
+\caption{Trang Dự báo \& DSS}\label{fig:ss-dss}
+\end{figure}
+
+% ============================================================
+\section{Mô hình DSS}
+% ============================================================
+
+Ba mô-đun trong \code{src/dss/} đều tuân thủ hợp đồng dữ liệu: chỉ nhận dữ liệu đầu vào từ
+\code{src/app/queries.py}, không tự mở kết nối CSDL khác. Số liệu dưới đây lấy từ kết quả chạy thực tế
+(\code{python src/dss/forecast.py}, \code{rfm.py}, \code{whatif.py}) trên kho dữ liệu đã nạp.
+
+\subsection{Dự báo doanh thu (\code{src/dss/forecast.py})}
+
+\paragraph{Dữ liệu vào.} Chuỗi doanh thu theo tháng, 20 điểm từ \code{2017-01} đến \code{2018-08}
+(\code{monthly\_revenue\_series\_for\_forecast()}). Khoảng thời gian này được cắt có chủ đích: năm 2016 chỉ
+có 3 tháng rời rạc và tháng 9/2018 chỉ có 1 đơn, đưa vào sẽ làm nhiễu mô hình.
+
+\paragraph{Phương pháp.} Giữ lại 4 tháng cuối (\code{2018-05}..\code{2018-08}) làm tập kiểm tra, 16 tháng đầu
+làm tập huấn luyện (\code{TEST\_SIZE = 4}). So sánh hai mô hình:
+\begin{itemize}[nosep]
+  \item \textbf{Baseline (trung bình trượt):} dự báo phẳng, bằng trung bình 3 tháng cuối của tập huấn luyện,
+        lặp lại cho toàn bộ chân trời dự báo (\code{\_naive\_moving\_average\_forecast}, \code{window=3}).
+  \item \textbf{Holt (xu hướng tuyến tính):} \code{statsmodels.tsa.holtwinters.ExponentialSmoothing} với
+        \code{trend="add"}, \code{seasonal=None} -- \emph{không} có thành phần mùa vụ vì chuỗi quá ngắn để
+        ước lượng đáng tin cậy. Mô hình được huấn luyện lại trên toàn bộ 20 tháng để cho ra dự báo 1 bước kế
+        tiếp, kèm khoảng tin cậy 95\% tính từ độ lệch chuẩn phần dư (\code{resid\_std}).
+\end{itemize}
+
+\paragraph{Kết quả thực tế.} (Bảng~\ref{tab:forecast-result})
+
+\begin{table}[h]
+\centering
+\caption{Sai số dự báo trên tập kiểm tra (4 tháng 2018-05..2018-08)}\label{tab:forecast-result}
+\small
+\begin{tabular}{@{}l r r@{}}
+\toprule
+\textbf{Mô hình} & \textbf{MAE} & \textbf{MAPE (\%)}\\
+\midrule
+Baseline (trung bình trượt) & 69.432,04 & 7,85\\
+Holt (xu hướng tuyến tính) & 281.179,04 & 32,24\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Dự báo tháng kế tiếp sau \code{2018-08} (mô hình Holt, huấn luyện lại trên toàn bộ chuỗi): \textbf{854.929,55},
+khoảng tin cậy 95\%: \textbf{643.623,52 .. 1.066.235,57}.
+
+\paragraph{Giải thích vì sao Holt tệ hơn baseline.} Đúng như cảnh báo trong docstring của mô-đun: doanh thu
+tăng gần như liên tục rồi đạt đỉnh tại tháng 11/2017 (Black Friday, khoảng 1,0 triệu, xem phần A), sau đó
+\emph{chững lại và giảm nhẹ}. Mô hình Holt ước lượng một xu hướng tăng tuyến tính từ 16 tháng huấn luyện (kết
+thúc ở \code{2018-04}, thời điểm doanh thu vẫn đang hồi phục sau Tết), nên ngoại suy vượt quá doanh thu thực
+tế của 4 tháng kiểm tra tiếp theo -- trong khi baseline (trung bình trượt phẳng) tình cờ bám sát mức doanh thu
+tương đối ổn định của giai đoạn này hơn. Đây không phải lỗi cài đặt mà là hệ quả trực tiếp của chuỗi thời gian
+ngắn, chưa đủ 2 chu kỳ mùa vụ để mô hình xu hướng được kiểm chứng đáng tin cậy.
+
+\subsection{Phân khúc khách hàng RFM + K-Means (\code{src/dss/rfm.py})}
+
+\paragraph{Cái bẫy F (Frequency) và cách xử lý.} Trong 95.420 khách hàng (theo \code{customer\_key} đã gộp
+theo người thật), chỉ khoảng 2.913 người (\textasciitilde 3\%) có từ 2 đơn trở lên. Vì vậy Frequency theo
+cách tính kinh điển gần như luôn bằng 1 và không thể chia phân vị (\code{qcut}) một cách có ý nghĩa. Giải
+pháp của mô-đun: thay F bằng hai đặc trưng khác --
+\textbf{\code{repeat\_flag}} (cờ nhị phân: 1 nếu khách có \(\ge\) 2 đơn, ngược lại 0) và
+\textbf{\code{avg\_review}} (điểm đánh giá trung bình của khách), vì điểm đánh giá mang tín hiệu hành vi thật
+mà một cột tần suất luôn bằng 1 không thể cung cấp.
+
+\paragraph{Dữ liệu vào và đặc trưng.} Từ \code{customer\_order\_history()} (1 dòng / đơn hàng), gộp theo
+\code{customer\_key} thành 4 đặc trưng: \code{recency\_days} (số ngày từ lần mua gần nhất đến ngày tham chiếu
+\textbf{2018-09-03}, một tháng sau đơn cuối trong cửa sổ phân tích), \code{monetary} (tổng chi tiêu),
+\code{repeat\_flag}, \code{avg\_review} (NULL được điền bằng trung vị của khách khác). Dữ liệu được chuẩn hóa
+bằng \code{StandardScaler} trước khi phân cụm.
+
+\paragraph{Chọn K.} Chạy K-Means với \(K \in [2,6]\), 10 lần khởi tạo mỗi K (\code{n\_init=10}). Vì
+\code{silhouette\_score} có độ phức tạp \(O(n^2)\), tính trên mẫu con 5.000 khách hàng. Kết quả (Bảng~\ref{tab:elbow}):
+K=2 có silhouette cao nhất (0,681) nhưng mô-đun giới hạn lựa chọn trong khoảng 3--4 theo yêu cầu đề bài
+(\code{chosen\_k = max(3, min(4, chosen\_k))}) để có đủ số phân khúc cho hành động nghiệp vụ; trong khoảng đó
+K=3 có silhouette tốt nhất.
+
+\begin{table}[h]
+\centering
+\caption{Inertia và silhouette theo K}\label{tab:elbow}
+\small
+\begin{tabular}{@{}r r r@{}}
+\toprule
+\textbf{K} & \textbf{Inertia} & \textbf{Silhouette}\\
+\midrule
+2 & 283.974,6 & 0,681\\
+3 & 208.709,2 & 0,411\\
+4 & 153.541,4 & 0,399\\
+5 & 108.683,3 & 0,422\\
+6 & 95.277,0 & 0,430\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{K đã chọn: 3, silhouette = 0,411.}
+
+\paragraph{Hồ sơ phân khúc.} (Bảng~\ref{tab:segments}) Việc đặt tên phân khúc theo thứ tự ưu tiên trong
+\code{\_name\_segments}: cụm có tỷ lệ mua lại cao nhất (và chi tiêu cao nhất) được gọi là \emph{Khách giá trị
+cao}; trong các cụm còn lại (chủ yếu khách mua 1 lần, nơi recency/monetary gần như không khác biệt -- chính
+\code{avg\_review} là yếu tố phân tách), cụm có điểm đánh giá cao nhất là \emph{Khách mới} (hài lòng ở đơn đầu,
+đáng để chăm sóc cho đơn thứ hai), cụm có điểm đánh giá thấp nhất là \emph{Khách ngủ đông}.
+
+\begin{table}[h]
+\centering
+\caption{Hồ sơ từng phân khúc khách hàng}\label{tab:segments}
+\small
+\begin{tabular}{@{}l r r r r r r@{}}
+\toprule
+\textbf{Phân khúc} & \textbf{Recency (ngày)} & \textbf{Monetary} & \textbf{Repeat flag} & \textbf{Review TB} & \textbf{Số khách} & \textbf{\%}\\
+\midrule
+Khách ngủ đông & 248,5 & 149,5 & 0,000 & 1,89 & 20.300 & 21,4\\
+Khách mới & 242,5 & 134,8 & 0,000 & 4,75 & 71.792 & 75,6\\
+Khách giá trị cao & 226,6 & 271,1 & 0,999 & 4,17 & 2.891 & 3,0\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Nhóm \emph{Khách giá trị cao} (3,0\% khách hàng) gần như trùng khít với nhóm khách mua lại (\code{repeat\_flag}
+trung bình 0,999) và có chi tiêu cao nhất. Hai nhóm còn lại đều là khách mua 1 lần (repeat\_flag = 0) nhưng
+tách biệt rõ theo mức độ hài lòng: \emph{Khách mới} hài lòng (4,75/5, chiếm 75,6\% khách hàng) trong khi
+\emph{Khách ngủ đông} không hài lòng (1,89/5, 21,4\%).
+
+\paragraph{Hành động đề xuất.} Khách giá trị cao: chăm sóc VIP, ưu đãi độc quyền, giao hàng ưu tiên. Khách
+mới: gửi voucher cho đơn thứ 2, gợi ý sản phẩm liên quan để biến thành khách mua lại. Khách ngủ đông: khảo sát
+lý do không hài lòng, chiến dịch win-back/giảm giá để tránh mất khách vĩnh viễn.
+
+\subsection{Mô hình what-if (\code{src/dss/whatif.py})}
+
+Mô-đun cung cấp hai mô hình có \textbf{tình trạng tri thức (epistemic status) khác nhau}, phải được phân biệt
+rõ trên giao diện và trong báo cáo.
+
+\paragraph{What-if 1: Giảm giao trễ \(\to\) điểm hài lòng -- dựa trên số đo thực tế.}
+Dựa trên quan hệ \emph{đã đo được} trong DW (phần A, Bảng~giao trễ): đơn giao trễ có điểm đánh giá trung bình
+\textbf{2,55}, đơn đúng hạn/sớm \textbf{4,21}. Mô hình giả định hai điểm trung bình này không đổi, chỉ tỷ
+trọng hai nhóm thay đổi, rồi tính trung bình có trọng số
+(\code{weighted\_avg = p*2.55 + (1-p)*4.21}). Đây là phép nội suy tuyến tính đơn giản, \emph{không phải} mô
+hình nhân quả đầy đủ. Tỷ lệ giao trễ hiện tại trên dữ liệu: \textbf{7,91\%}. Ví dụ kết quả (Bảng~\ref{tab:whatif-delivery}).
+
+\begin{table}[h]
+\centering
+\caption{What-if giảm tỷ lệ giao trễ (hiện tại: 7,91\%)}\label{tab:whatif-delivery}
+\small
+\begin{tabular}{@{}r r r@{}}
+\toprule
+\textbf{Tỷ lệ trễ mục tiêu (\%)} & \textbf{Điểm TB dự kiến} & \textbf{\(\Delta\) so với hiện tại}\\
+\midrule
+7,91 (hiện tại) & 4,079 & +0,000\\
+4,91 & 4,128 & +0,050\\
+1,91 & 4,178 & +0,100\\
+0,00 & 4,210 & +0,131\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{What-if 2: Khuyến mãi theo danh mục \(\to\) doanh thu -- dựa trên giả định người dùng.}
+Người dùng nhập mức giảm giá (\code{discount\_pct}) và \textbf{độ co giãn cầu theo giá}
+(\code{elasticity}, quy ước dương = cầu tăng khi giá giảm). Công thức:
+\(\%\Delta\text{quantity} = \text{elasticity} \times \%\Delta(-\text{price})\), từ đó
+\(\text{Revenue}_{new} = \text{Revenue}_{base} \times (1-d) \times (1 + \text{elasticity} \times d)\) với
+\(d\) là mức giảm giá. \textbf{Độ co giãn là giả định do người dùng tự đặt, không phải số đo thực tế hay dự
+báo chắc chắn}; giao diện luôn hiển thị cảnh báo này. Ví dụ với danh mục \code{health\_beauty}
+(doanh thu nền: 1.255.695,00, Bảng~\ref{tab:whatif-promo}):
+
+\begin{table}[h]
+\centering
+\caption{What-if khuyến mãi -- danh mục health\_beauty}\label{tab:whatif-promo}
+\small
+\begin{tabular}{@{}r r r r@{}}
+\toprule
+\textbf{Giảm giá (\%)} & \textbf{Co giãn} & \textbf{Doanh thu dự kiến} & \textbf{\(\Delta\) (\%)}\\
+\midrule
+10 & 1,0 & 1.243.138 & $-1,00$\\
+10 & 2,0 & 1.356.151 & $+8,00$\\
+20 & 1,5 & 1.305.923 & $+4,00$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Với co giãn = 1,0 (cầu tăng đúng bằng \% giảm giá), doanh thu vẫn giảm nhẹ vì phần tăng số lượng không bù đủ
+phần giảm giá trên từng đơn vị; cần co giãn \(>\) 1 (cầu nhạy hơn giá) thì khuyến mãi mới làm tăng doanh thu
+trong mô hình này.
+
+% ============================================================
+\section{Đánh giá}
+% ============================================================
+
+\begin{table}[h]
+\centering
+\caption{Tổng hợp chỉ số đánh giá các mô hình DSS}\label{tab:eval-summary}
+\small
+\begin{tabularx}{\textwidth}{@{}l l X@{}}
+\toprule
+\textbf{Mô hình} & \textbf{Chỉ số} & \textbf{Giá trị}\\
+\midrule
+Dự báo -- Baseline & MAE / MAPE & 69.432,04 / 7,85\%\\
+Dự báo -- Holt & MAE / MAPE & 281.179,04 / 32,24\% (kém hơn baseline)\\
+RFM -- K-Means & K đã chọn / Silhouette & 3 / 0,411\\
+What-if giao trễ & Căn cứ & Số đo thực tế (2,55 vs 4,21)\\
+What-if khuyến mãi & Căn cứ & Giả định người dùng (độ co giãn)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Hạn chế của từng mô hình (nêu trung thực, không phóng đại kết quả).}
+\begin{itemize}[nosep]
+  \item \textbf{Dự báo doanh thu.} Chuỗi chỉ có 20 tháng, chưa đủ 2 chu kỳ mùa vụ (24 tháng trở lên) nên không
+        thể ước lượng và kiểm chứng một mô hình mùa vụ đáng tin cậy; vì vậy nhóm không dùng Holt-Winters đầy
+        đủ mà chỉ dùng Holt không mùa vụ. Trên dữ liệu hiện tại, Holt có sai số \emph{cao hơn} baseline vì
+        xu hướng tăng ước lượng từ giai đoạn huấn luyện không còn đúng ở giai đoạn kiểm tra (doanh thu chững
+        lại sau đỉnh Black Friday 11/2017). Khoảng tin cậy 95\% của dự báo tháng kế tiếp khá rộng
+        (643.623,52 -- 1.066.235,57), phản ánh đúng mức độ bất định với chuỗi ngắn.
+  \item \textbf{RFM + K-Means.} Silhouette 0,411 ở K=3 là mức \emph{trung bình}, không phải phân cụm tách biệt
+        rõ ràng; K=2 có silhouette cao hơn (0,681) nhưng bị giới hạn lại trong khoảng 3--4 theo yêu cầu đề bài
+        để có đủ phân khúc hành động. F (Frequency) đã được thay bằng cờ nhị phân mua lại + điểm đánh giá
+        trung bình vì \textasciitilde 97\% khách hàng chỉ có 1 đơn, nên đây không phải RFM kinh điển mà là một
+        biến thể phù hợp với đặc điểm dữ liệu.
+  \item \textbf{What-if giao trễ.} Giả định điểm trung bình của mỗi nhóm (trễ/đúng hạn) không đổi khi tỷ trọng
+        thay đổi -- là một phép nội suy, không phải mô hình nhân quả (không loại trừ các yếu tố gây nhiễu khác
+        ảnh hưởng đến điểm đánh giá).
+  \item \textbf{What-if khuyến mãi.} Độ co giãn cầu theo giá là tham số \emph{người dùng tự nhập}, chưa được
+        ước lượng từ dữ liệu lịch sử (DW không có đủ các đợt khuyến mãi có ghi nhận giá gốc/giá giảm để ước
+        lượng co giãn thực tế). Kết quả chỉ mang tính minh họa kịch bản, không phải dự báo.
+\end{itemize}
+
+% ============================================================
+\section{Hạn chế và hướng phát triển}
+% ============================================================
+
+\subsection{Hạn chế hiện tại}
+\begin{itemize}[nosep]
+  \item \textbf{Chưa có ảnh chụp màn hình dashboard.} Báo cáo này dùng khung \code{\textbackslash fbox} làm chỗ
+        trống (TODO) cho 5 trang dashboard; cần chụp và chèn ảnh thật trước khi nộp/thuyết trình.
+  \item \textbf{Chuỗi thời gian ngắn.} 20 tháng dữ liệu không đủ để kiểm định mô hình mùa vụ hoặc các mô hình
+        dự báo phức tạp hơn (ARIMA mùa vụ, Prophet\ldots).
+  \item \textbf{Mô hình Holt hiện đang kém hơn baseline} trên tập kiểm tra 4 tháng cuối -- là một kết quả thật,
+        không phải lỗi cài đặt, nhưng cho thấy cần thận trọng khi dùng Holt để ra quyết định thực tế ở giai
+        đoạn dữ liệu hiện tại.
+  \item \textbf{F (Frequency) trong RFM bị thay thế} bằng cờ nhị phân mua lại vì đặc thù dữ liệu (hầu hết khách
+        chỉ mua 1 lần trong giai đoạn quan sát), nên các phân khúc không hoàn toàn tương đương RFM kinh điển.
+  \item \textbf{Độ co giãn cầu trong what-if khuyến mãi} là tham số giả định, chưa được kiểm chứng bằng dữ liệu
+        thực nghiệm (A/B test hay lịch sử khuyến mãi).
+\end{itemize}
+
+\subsection{Hướng phát triển}
+\begin{enumerate}[nosep]
+  \item Thu thập/tích lũy thêm dữ liệu theo thời gian để chuỗi doanh thu đạt tối thiểu 24 tháng, cho phép dùng
+        Holt-Winters có thành phần mùa vụ và so sánh với các mô hình như SARIMA hoặc Prophet.
+  \item Ghi nhận các đợt khuyến mãi thực tế (giá gốc, giá giảm, doanh số trước/sau) để ước lượng độ co giãn cầu
+        theo giá từ dữ liệu thay vì để người dùng tự giả định.
+  \item Bổ sung ảnh chụp màn hình và video demo thực tế cho từng trang dashboard; cân nhắc thêm bản đồ theo
+        mã bưu chính nếu phần A mở rộng dùng dữ liệu địa lý chi tiết.
+\end{enumerate}
+
+\end{document}
