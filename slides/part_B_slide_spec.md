@@ -17,6 +17,12 @@ Dán toàn bộ file này vào công cụ AI cùng câu lệnh sau:
 
 Nếu công cụ không đặt được toạ độ chính xác: giữ **thứ tự, phân cấp và tỷ lệ** giữa các khối như trong đặc tả.
 
+**Quy tắc cho bảng và chữ (bắt buộc):**
+- Tô màu hoặc in đậm một con số trong bảng bằng **định dạng của chính ô đó**. Tuyệt đối không đặt hộp chữ riêng chồng lên bảng.
+- Mọi hộp chữ phải **bật tự xuống dòng**, có chiều rộng đúng bằng chiều rộng trong đặc tả trừ đệm; chữ không được vượt ra ngoài thẻ chứa nó. Tắt tự động co giãn khung.
+- Hàng bảng chỉ cao đúng giá trị trong đặc tả; không để bảng đè lên khối khác.
+- Biểu đồ dùng trục, chú giải, tiêu đề của chính đối tượng biểu đồ.
+
 **Khung ảnh chụp màn hình:** các slide 3 và 4 có khung dành cho ảnh chụp dashboard. Ảnh sẽ được chèn sau, nên công cụ chỉ vẽ **khung nét đứt kèm dòng chữ giữ chỗ** như mô tả, không tự tạo ảnh giả.
 
 ---
@@ -248,18 +254,19 @@ Giữ nguyên các dấu ngoặc vuông, **không tự bịa tên hay mã số**
 
 **Biểu đồ 5b** (nằm trong thẻ 5a):
 - Tiêu đề: `Doanh thu theo tháng (nghìn)`, 18 pt đậm `ink`, `x 0,85; y 1,7; w 6,9; h 0,4`.
-- Chú giải: một hàng ngang `y 2,15; h 0,35`, 14 pt, mỗi mục gồm đoạn thẳng ngắn 0,3 inch cùng màu đường + nhãn: `Thực tế` (`blue`, nét liền), `Baseline` (`green`, nét đứt), `Holt` (`red`, nét đứt). Đặt lần lượt tại `x 0,85`, `x 2,6`, `x 4,45`.
+- Chú giải: chú giải gốc của biểu đồ, phía trên vùng vẽ, 14 pt: `Thực tế` (`blue`, nét liền), `Baseline` (`green`, nét đứt), `Holt` (`red`, nét đứt).
 - Vùng vẽ: `x 1,5 đến 7,7`, `y 2,6 đến 4,85`.
 - Trục Y: 0 đến 1.400, vạch 0, 350, 700, 1.050, 1.400; nhãn 14 pt `muted` bên trái vùng vẽ; lưới ngang nét 0,75 pt `line`; không lưới dọc.
 - Trục X: 20 điểm từ `01/2017` đến `08/2018`; chỉ ghi nhãn tại `01/2017`, `07/2017`, `01/2018`, `07/2018` (14 pt `muted`), đặt dưới vùng vẽ `y 4,9; h 0,3`.
-- Vùng kiểm tra: dải nền `blue-light` đứng, phủ 4 điểm cuối (từ `05/2018` đến `08/2018`), từ `y 2,6` đến `y 4,85`, nằm **phía sau** các đường. Nhãn `Tập kiểm tra` 14 pt `muted` ở đỉnh dải.
+- **Không vẽ dải nền vùng kiểm tra** (dải đặt tay luôn lệch khỏi biểu đồ). Vùng kiểm tra chỉ được nêu ở chú thích 5c.
+- **Chỉ dùng trục, nhãn trục, chú giải và tiêu đề của chính đối tượng biểu đồ.** Không đặt thêm hộp chữ nào làm nhãn trục, chú giải hay tiêu đề (tránh bị nhân đôi và chồng chữ). Tắt nhãn "Plot Area". Biểu đồ có **đúng 3 chuỗi**, không đường xu hướng, không chuỗi thừa. Với Baseline và Holt, 16 ô đầu để **trống** (hiển thị khoảng trống, không phải số 0).
 - Chuỗi **Thực tế** (nghìn), 20 điểm, nét 2,5 pt `blue`, nét liền, chấm tròn đường kính 6 pt `blue`:
   `120, 245, 368, 354, 503, 430, 492, 568, 621, 660, 1004, 742, 945, 838, 981, 994, 993, 863, 878, 849`
 - Chuỗi **Baseline**, chỉ 4 điểm cuối (từ `05/2018` đến `08/2018`), nét 2,5 pt `green`, nét đứt, chấm tròn 6 pt `green`: `938, 938, 938, 938`
 - Chuỗi **Holt**, chỉ 4 điểm cuối, nét 2,5 pt `red`, nét đứt, chấm tròn 6 pt `red`: `1093, 1149, 1205, 1261`
 - Không hiện nhãn giá trị trên các điểm.
 
-**Chú thích 5c:** `x 0,85; y 5,25; w 6,9; h 0,35`, 14 pt `muted`: `Huấn luyện 16 tháng đầu, kiểm tra 4 tháng cuối.`
+**Chú thích 5c:** `x 0,85; y 5,25; w 6,9; h 0,35`, 14 pt `muted`: `Huấn luyện 16 tháng đầu; kiểm tra 4 tháng cuối (05/2018 đến 08/2018), nơi Baseline và Holt xuất hiện.`
 
 **Bảng sai số 5d** (`x 8,3; y 1,6; w 4,433`; cột: `w 1,9` (`Mô hình`), `w 1,3` (`MAE`, canh phải), `w 1,233` (`MAPE`, canh phải); hàng tiêu đề cao 0,5; 2 hàng cao 0,55, kết thúc `y 3,2`; chữ 16 pt):
 
@@ -385,15 +392,15 @@ Trong thẻ phải, thêm dòng mô tả dưới bảng, trong thẻ phải: `+0
 Trong mỗi thẻ: tiêu đề `+0,25; +0,25` (20 pt đậm `ink`), gạch đầu dòng ở `+0,25; +0,9`, `w 5,4`, 18 pt `ink`, cách dòng 0,12 inch.
 
 **Thẻ trái:** tiêu đề `Hạn chế`
-- `Chuỗi doanh thu chỉ có 20 tháng, chưa dự báo được mùa vụ`
+- `Chuỗi chỉ 20 tháng, chưa bắt được mùa vụ`
 - `Holt hiện kém baseline`
 - `F trong RFM bị thay thế, không phải RFM kinh điển`
 - `Độ co giãn của what-if khuyến mãi là giả định`
 
 **Thẻ phải:** tiêu đề `Hướng phát triển`
-- `Thêm dữ liệu nhiều năm để dùng Holt-Winters có mùa vụ`
-- `Ghi nhận giá gốc và giá giảm để ước lượng độ co giãn từ dữ liệu`
-- `Thử mô hình phân loại dự đoán nguy cơ giao trễ`
+- `Thêm dữ liệu nhiều năm để dùng Holt-Winters`
+- `Ghi nhận giá khuyến mãi để ước lượng độ co giãn`
+- `Thử mô hình dự đoán nguy cơ giao trễ`
 
 **Banner 9c:** `Các hạn chế đều đến từ đặc điểm dữ liệu và đã ghi rõ trên giao diện và trong báo cáo`
 
@@ -472,9 +479,10 @@ Trong mỗi thẻ: tiêu đề `+0,25; +0,25` (20 pt đậm `ink`), gạch đầ
 6. Chỉ dùng màu trong Mục 2.1; xanh lá, đỏ, vàng dùng đúng ngữ nghĩa ở Mục 2.1.
 7. Mọi số liệu khớp **Mục 7**. Đặc biệt không làm tròn lại các số: `13,49 triệu`, `98.199`, `7,91%`, `69.432`, `281.179`, `0,411`, `94.983`.
 8. **Biểu đồ slide 4 và 5:** nét đường mảnh (2,5 pt), chấm nhỏ (6 pt), không có khối màu lớn che biểu đồ; đường Thực tế có 20 điểm, đường Baseline và Holt chỉ có 4 điểm cuối.
-9. Chữ, bảng, biểu đồ đều là đối tượng chỉnh sửa được (không dán thành ảnh). Riêng khung ảnh chụp màn hình ở slide 3 chỉ là khung giữ chỗ.
-10. Không có animation, chuyển cảnh, ảnh stock hay emoji.
-11. Tổng thời lượng theo ghi chú diễn giả khoảng 430 giây.
+9. Mỗi con số tô màu nằm **trong ô bảng của nó**; không có hộp chữ nổi chồng lên bảng; không có chữ nào tràn ra ngoài thẻ hoặc ô chứa nó.
+10. Chữ, bảng, biểu đồ đều là đối tượng chỉnh sửa được (không dán thành ảnh). Riêng khung ảnh chụp màn hình ở slide 3 chỉ là khung giữ chỗ.
+11. Không có animation, chuyển cảnh, ảnh stock hay emoji.
+12. Tổng thời lượng theo ghi chú diễn giả khoảng 430 giây.
 
 ---
 
