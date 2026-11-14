@@ -261,7 +261,7 @@ Giữ nguyên các dấu ngoặc vuông, **không tự bịa tên hay mã số**
 
 **Chú thích 5c:** `x 0,85; y 5,25; w 6,9; h 0,35`, 14 pt `muted`: `Huấn luyện 16 tháng đầu, kiểm tra 4 tháng cuối.`
 
-**Bảng sai số 5d** (`x 8,3; y 1,6; w 4,433`; cột: `w 1,9` (`Mô hình`), `w 1,3` (`MAE`, canh phải), `w 1,233` (`MAPE`, canh phải); hàng tiêu đề cao 0,5; 2 hàng cao 0,7; chữ 16 pt):
+**Bảng sai số 5d** (`x 8,3; y 1,6; w 4,433`; cột: `w 1,9` (`Mô hình`), `w 1,3` (`MAE`, canh phải), `w 1,233` (`MAPE`, canh phải); hàng tiêu đề cao 0,5; 2 hàng cao 0,55, kết thúc `y 3,2`; chữ 16 pt):
 
 | Mô hình | MAE | MAPE |
 |---|---|---|
@@ -270,9 +270,9 @@ Giữ nguyên các dấu ngoặc vuông, **không tự bịa tên hay mã số**
 
   Hàng Baseline: số in đậm `green`. Hàng Holt: số in đậm `red`.
 
-**Thẻ kết luận 5e:** thẻ chuẩn `x 8,3; y 3,0; w 4,433; h 2,7`. Tiêu đề thẻ `Baseline chính xác hơn Holt` (18 pt đậm `ink`, `x 8,5; y 3,15; w 4,03; h 0,4`). Hai gạch đầu dòng 16 pt `ink` (`x 8,5; y 3,65; w 4,03; h 1,9`):
-- `Sai số MAPE của Holt cao gấp khoảng 4 lần`
-- `Holt ngoại suy xu hướng tăng, nhưng doanh thu đi ngang sau tháng 11/2017`
+**Thẻ kết luận 5e:** thẻ chuẩn `x 8,3; y 3,4; w 4,433; h 2,3` (kết thúc `y 5,7`). Tiêu đề thẻ `Baseline chính xác hơn Holt` (18 pt đậm `ink`, `x 8,5; y 3,55; w 4,03; h 0,4`). Hai gạch đầu dòng 16 pt `ink`, bật tự xuống dòng (`x 8,5; y 4,05; w 4,03; h 1,55`):
+- `Holt có MAPE cao gấp khoảng 4 lần baseline`
+- `Holt ngoại suy đà tăng, nhưng doanh thu đi ngang sau 11/2017`
 
 **Banner 5f:** `x 0,6; y 6,0; w 12,133; h 0,8`, nền `blue-light`, chữ 16 pt `ink`, canh giữa. Dòng 1 (đậm): `Dự báo tháng 09/2018: Holt 854.930 (khoảng tin cậy 95%: 643.624 đến 1.066.236), baseline 863.390`.
 
@@ -329,13 +329,13 @@ Tiêu đề thẻ tại `y 1,7` (cách mép trên thẻ 0,1), nội dung tại `
 |---|---|---|
 | Nhãn | `SỐ ĐO THỰC TẾ` (nền `green`, chữ trắng) | `GIẢ ĐỊNH CỦA NGƯỜI DÙNG` (nền `amber`, chữ `ink`) |
 | Tiêu đề | `What-if 1: giảm giao trễ` | `What-if 2: khuyến mãi` |
-| Công thức | `điểm = p × 2,55 + (1 − p) × 4,21` | `DT mới = DT nền × (1 − d) × (1 + co giãn × d)` |
-| Cột bảng | `Tỷ lệ trễ` (`w 1,8`), `Điểm TB dự kiến` (`w 2,0`), `Thay đổi` (`w 1,6`) | `Giảm giá` (`w 1,6`), `Co giãn` (`w 1,6`), `Doanh thu` (`w 2,2`) |
+| Công thức | `điểm = p × 2,55 + (1 − p) × 4,21` | `DT mới = DT nền × (1 − d) × (1 + e × d)` |
+| Cột bảng | `Tỷ lệ trễ` (`w 2,0`), `Điểm TB dự kiến` (`w 1,9`), `Thay đổi` (`w 1,5`) | `Giảm giá` (`w 1,4`), `Co giãn` (`w 1,4`), `Doanh thu` (`w 2,6`) |
 | Hàng 1 | `7,91% (hiện tại)` · `4,079` · `+0,000` | `10%` · `1,0` · `−1,00%` |
 | Hàng 2 | `1,91%` · `4,178` · `+0,100` | `10%` · `2,0` · `+8,00%` |
 | Hàng 3 | `0%` · `4,210` · `+0,131` | `20%` · `1,5` · `+4,00%` |
 
-Trong thẻ phải, thêm dòng mô tả dưới bảng, trong thẻ phải: `+0,25; +3,8; w 5,4; h 0,35`, 14 pt `muted`: `Danh mục health_beauty, doanh thu nền 1.255.695`. Ô `−1,00%` in `red`; ô `+8,00%` và `+4,00%` in `green`. Trong thẻ trái, các ô `Thay đổi` in `green`.
+Trong thẻ phải, thêm dòng mô tả dưới bảng, trong thẻ phải: `+0,25; +3,8; w 5,4; h 0,35`, 14 pt `muted`: `e là độ co giãn. Danh mục health_beauty, doanh thu nền 1.255.695`. Ô `−1,00%` in `red`; ô `+8,00%` và `+4,00%` in `green`. Trong thẻ trái, các ô `Thay đổi` in `green`.
 
 **Banner 7a:** `x 0,6; y 5,95; w 12,133; h 0,85`, nền `amber-light`, chữ 16 pt `ink`, canh giữa cả hai chiều. Dòng 1 (đậm): `Mô hình 1 dựa trên chênh lệch đo được trong DW. Mô hình 2 dựa trên giả định.` Dòng 2: `Độ co giãn do người dùng nhập, kết quả chỉ minh họa kịch bản, không phải dự báo.`
 
