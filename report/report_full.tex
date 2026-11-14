@@ -168,7 +168,7 @@ Mức hạt của bảng fact là \textbf{một dòng cho mỗi sản phẩm tro
 (\code{order\_id} + \code{order\_item\_id}). Đây là mức chi tiết nhất có sẵn trong nguồn: từ đó có thể
 cộng dồn lên theo đơn, theo ngày, theo danh mục, theo bang\ldots mà không mất thông tin. Chọn mức hạt thấp hơn
 (ví dụ gộp theo đơn) sẽ làm mất khả năng phân tích theo sản phẩm và người bán, vì một đơn có thể chứa nhiều sản phẩm
-từ nhiều người bán khác nhau. Chi phí là số dòng fact lớn hơn, nhưng với quy mô này là hoàn toàn chấp nhận được.
+từ nhiều người bán khác nhau. Chi phí là số dòng fact lớn hơn, nhưng với quy mô này vẫn chấp nhận được.
 
 \subsection{Mô hình dữ liệu đa chiều}
 Lược đồ là \textbf{star schema} gồm một bảng fact \code{fact\_sales} và sáu bảng chiều (Hình~\ref{fig:star}).
@@ -380,8 +380,8 @@ Năm 2016 chỉ có 3 tháng rời rạc (9, 10, 12) và năm 2018 chỉ có d�
 
 \subsection{Drill-down: từ năm 2017 xuống quý và tháng}
 Truy vấn nhóm theo \code{quarter} và \code{year\_month} của năm 2017. Doanh thu tăng gần như liên tục từ
-120 nghìn (tháng 1) lên đỉnh \textbf{khoảng 1,0 triệu vào tháng 11/2017}, trùng dịp khuyến mãi cuối năm
-(Black Friday), sau đó giảm nhẹ ở tháng 12 (khoảng 742 nghìn).
+120 nghìn (tháng 1) lên đỉnh \textbf{khoảng 1,0 triệu vào tháng 11/2017}, gần dịp Black Friday (24/11/2017), rồi giảm xuống khoảng 742 nghìn ở tháng 12. Dữ liệu không ghi nhận
+chương trình khuyến mãi nào, nên mối liên hệ với Black Friday chỉ là suy đoán.
 
 \subsection{Slice: cố định năm 2017, xem theo danh mục}
 Cố định chiều thời gian ở năm 2017, nhóm theo danh mục sản phẩm. Năm danh mục dẫn đầu gồm
@@ -414,7 +414,6 @@ RJ & computers\_accessories & 59.658,92\\
 Xoay chiều thời gian thành cột để so sánh trực tiếp các năm bằng biểu thức \code{CASE WHEN} trong
 \code{SUM}. Danh mục \code{health\_beauty} dẫn đầu về tổng doanh thu (khoảng 1,26 triệu), tăng từ 481 nghìn
 (2017) lên 770 nghìn (2018); ngược lại \code{cool\_stuff} giảm từ 389 nghìn xuống 231 nghìn.
-Đây là gợi ý hữu ích cho quyết định nhập hàng và khuyến mãi ở phần DSS.
 
 \subsection{Các truy vấn phân tích bổ sung}
 \paragraph{Theo địa lý.}
@@ -425,8 +424,8 @@ trung bình thấp hơn đáng kể (3,82) so với SP (4,14).
 Thẻ tín dụng chiếm khoảng 78,9\% doanh thu, boleto (phiếu thanh toán Brazil) 17,6\%, voucher 2,1\% và thẻ ghi nợ 1,4\%.
 
 \paragraph{Giao hàng và mức hài lòng.}
-Đây là phát hiện nổi bật nhất (Bảng~\ref{tab:delay}): các dòng hàng giao trễ có điểm đánh giá trung bình chỉ
-2,55, trong khi giao đúng hạn hoặc sớm là 4,21.
+Chênh lệch lớn nhất nằm ở giao hàng (Bảng~\ref{tab:delay}): dòng hàng giao trễ có điểm đánh giá trung bình
+2,55, còn giao đúng hạn hoặc sớm là 4,21.
 
 \begin{table}[h]
 \centering
@@ -523,8 +522,8 @@ Hiển thị 5 chỉ số KPI (doanh thu, số đơn, giá trị đơn trung bì
 \end{figure}
 
 \subsection{Trang 2 -- Phân tích đa chiều (OLAP) (\code{page\_olap})}
-Đây là trang chứng minh năm phép toán OLAP theo yêu cầu đề bài, mỗi phép toán ứng với một hàm riêng trong
-\code{queries.py} (Bảng~\ref{tab:olap-map}).
+Trang này trình bày năm phép toán OLAP: roll-up, drill-down, slice, dice và pivot. Mỗi phép toán có một hàm
+riêng trong \code{queries.py} (Bảng~\ref{tab:olap-map}).
 
 \begin{table}[h]
 \centering
@@ -571,7 +570,7 @@ So sánh điểm đánh giá trung bình và số ngày giao trung bình giữa 
 \end{figure}
 
 \subsection{Trang 5 -- Dự báo \& DSS (\code{page\_dss})}
-Gồm ba khối tương ứng ba mô hình DSS trình bày ở Mục~3: biểu đồ dự báo doanh thu kèm bảng MAE/MAPE, bảng
+Gồm ba khối tương ứng ba mô hình DSS trình bày ở Mục~\ref{sec:dss}: biểu đồ dự báo doanh thu kèm bảng MAE/MAPE, bảng
 phân khúc khách hàng RFM + K-Means kèm biểu đồ elbow, và hai khối what-if (giao trễ, khuyến mãi) với thanh
 trượt tương tác (\code{st.slider}).
 
@@ -582,7 +581,7 @@ trượt tương tác (\code{st.slider}).
 \end{figure}
 
 % ============================================================
-\section{Mô hình DSS}
+\section{Mô hình DSS}\label{sec:dss}
 % ============================================================
 
 Ba mô-đun trong \code{src/dss/} đều tuân thủ hợp đồng dữ liệu: chỉ nhận dữ liệu đầu vào từ
@@ -625,23 +624,20 @@ Holt (xu hướng tuyến tính) & 281.179,04 & 32,24\\
 Dự báo tháng kế tiếp sau \code{2018-08} (mô hình Holt, huấn luyện lại trên toàn bộ chuỗi): \textbf{854.929,55},
 khoảng tin cậy 95\%: \textbf{643.623,52 .. 1.066.235,57}.
 
-\paragraph{Giải thích vì sao Holt tệ hơn baseline.} Đúng như cảnh báo trong docstring của mô-đun: doanh thu
-tăng gần như liên tục rồi đạt đỉnh tại tháng 11/2017 (Black Friday, khoảng 1,0 triệu, xem phần A), sau đó
-\emph{chững lại và giảm nhẹ}. Mô hình Holt ước lượng một xu hướng tăng tuyến tính từ 16 tháng huấn luyện (kết
-thúc ở \code{2018-04}, thời điểm doanh thu vẫn đang hồi phục sau Tết), nên ngoại suy vượt quá doanh thu thực
-tế của 4 tháng kiểm tra tiếp theo -- trong khi baseline (trung bình trượt phẳng) tình cờ bám sát mức doanh thu
-tương đối ổn định của giai đoạn này hơn. Đây không phải lỗi cài đặt mà là hệ quả trực tiếp của chuỗi thời gian
-ngắn, chưa đủ 2 chu kỳ mùa vụ để mô hình xu hướng được kiểm chứng đáng tin cậy.
+\paragraph{Vì sao Holt kém baseline.} Doanh thu tăng gần như liên tục đến đỉnh khoảng 1,0 triệu ở tháng
+11/2017, rồi đi ngang và giảm nhẹ. Holt ước lượng xu hướng tăng tuyến tính từ 16 tháng huấn luyện (đến
+\code{2018-04}), nên dự báo cao hơn doanh thu thực của 4 tháng kiểm tra. Baseline là một đường phẳng và bám sát
+mức doanh thu tương đối ổn định của giai đoạn này hơn. Đây không phải lỗi cài đặt: chuỗi chỉ có 20 tháng, chưa
+đủ hai chu kỳ mùa vụ để kiểm chứng một mô hình có xu hướng.
 
 \subsection{Phân khúc khách hàng RFM + K-Means (\code{src/dss/rfm.py})}
 
-\paragraph{Cái bẫy F (Frequency) và cách xử lý.} Trong 95.420 khách hàng (theo \code{customer\_key} đã gộp
-theo người thật), chỉ khoảng 2.913 người (\textasciitilde 3\%) có từ 2 đơn trở lên. Vì vậy Frequency theo
-cách tính kinh điển gần như luôn bằng 1 và không thể chia phân vị (\code{qcut}) một cách có ý nghĩa. Giải
-pháp của mô-đun: thay F bằng hai đặc trưng khác --
+\paragraph{Cái bẫy F (Frequency) và cách xử lý.} Trong 94.983 khách hàng (theo \code{customer\_key} đã gộp
+theo người thật), chỉ 2.887 người (khoảng 3\%) có từ 2 đơn trở lên. Vì vậy Frequency tính theo cách kinh điển
+gần như luôn bằng 1 và không thể chia phân vị (\code{qcut}) một cách có ý nghĩa. Mô-đun thay F bằng hai đặc trưng:
 \textbf{\code{repeat\_flag}} (cờ nhị phân: 1 nếu khách có \(\ge\) 2 đơn, ngược lại 0) và
-\textbf{\code{avg\_review}} (điểm đánh giá trung bình của khách), vì điểm đánh giá mang tín hiệu hành vi thật
-mà một cột tần suất luôn bằng 1 không thể cung cấp.
+\textbf{\code{avg\_review}} (điểm đánh giá trung bình của khách), vì điểm đánh giá cho biết thêm về hành vi của khách,
+còn cột tần suất gần như không đổi thì không.
 
 \paragraph{Dữ liệu vào và đặc trưng.} Từ \code{customer\_order\_history()} (1 dòng / đơn hàng), gộp theo
 \code{customer\_key} thành 4 đặc trưng: \code{recency\_days} (số ngày từ lần mua gần nhất đến ngày tham chiếu
@@ -706,8 +702,8 @@ lý do không hài lòng, chiến dịch win-back/giảm giá để tránh mất
 
 \subsection{Mô hình what-if (\code{src/dss/whatif.py})}
 
-Mô-đun cung cấp hai mô hình có \textbf{tình trạng tri thức (epistemic status) khác nhau}, phải được phân biệt
-rõ trên giao diện và trong báo cáo.
+Mô-đun có hai mô hình với \textbf{mức căn cứ khác nhau}: một mô hình dựa trên số đo trong DW, một mô hình
+dựa trên giả định của người dùng. Giao diện và báo cáo đều tách bạch hai loại này.
 
 \paragraph{What-if 1: Giảm giao trễ \(\to\) điểm hài lòng -- dựa trên số đo thực tế.}
 Dựa trên quan hệ \emph{đã đo được} trong DW (phần A, Bảng~\ref{tab:delay}): đơn giao trễ có điểm đánh giá trung bình
@@ -781,14 +777,14 @@ What-if khuyến mãi & Căn cứ & Giả định người dùng (độ co giãn
 \end{tabularx}
 \end{table}
 
-\paragraph{Hạn chế của từng mô hình (nêu trung thực, không phóng đại kết quả).}
+\paragraph{Hạn chế của từng mô hình.}
 \begin{itemize}[nosep]
   \item \textbf{Dự báo doanh thu.} Chuỗi chỉ có 20 tháng, chưa đủ 2 chu kỳ mùa vụ (24 tháng trở lên) nên không
         thể ước lượng và kiểm chứng một mô hình mùa vụ đáng tin cậy; vì vậy nhóm không dùng Holt-Winters đầy
         đủ mà chỉ dùng Holt không mùa vụ. Trên dữ liệu hiện tại, Holt có sai số \emph{cao hơn} baseline vì
-        xu hướng tăng ước lượng từ giai đoạn huấn luyện không còn đúng ở giai đoạn kiểm tra (doanh thu chững
-        lại sau đỉnh Black Friday 11/2017). Khoảng tin cậy 95\% của dự báo tháng kế tiếp khá rộng
-        (643.623,52 -- 1.066.235,57), phản ánh đúng mức độ bất định với chuỗi ngắn.
+        xu hướng tăng ước lượng từ giai đoạn huấn luyện không còn đúng ở giai đoạn kiểm tra (doanh thu đi ngang
+        sau đỉnh tháng 11/2017). Khoảng tin cậy 95\% của dự báo tháng kế tiếp khá rộng
+        (643.623,52 -- 1.066.235,57), phản ánh độ bất định lớn của chuỗi ngắn.
   \item \textbf{RFM + K-Means.} Silhouette 0,411 ở K=3 là mức \emph{trung bình}, không phải phân cụm tách biệt
         rõ ràng; K=2 có silhouette cao hơn (0,681) nhưng bị giới hạn lại trong khoảng 3--4 theo yêu cầu đề bài
         để có đủ phân khúc hành động. F (Frequency) đã được thay bằng cờ nhị phân mua lại + điểm đánh giá
